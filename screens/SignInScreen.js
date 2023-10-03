@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Text } from 'react-native';
+import { View } from 'react-native';
+import { TextInput, Button } from 'react-native-paper';
 import { auth } from '../firebase/Config';
 
 const SignInScreen = () => {
@@ -9,20 +10,33 @@ const SignInScreen = () => {
   const handleSignIn = () => {
     auth.signInWithEmailAndPassword(email, password)
       .then((userCredential) => {
-        // Connexion réussie
         console.log('Connexion réussie:', userCredential.user);
       })
       .catch((error) => {
-        // Erreur lors de la connexion
         console.error('Erreur lors de la connexion:', error);
       });
   };
 
   return (
-    <View>
-      <TextInput placeholder="Email" onChangeText={setEmail} value={email} />
-      <TextInput placeholder="Mot de passe" onChangeText={setPassword} value={password} secureTextEntry />
-      <Button title="Se connecter" onPress={handleSignIn} />
+    <View style={{ padding: 16 }}>
+      <TextInput
+        label="Email"
+        value={email}
+        onChangeText={setEmail}
+        mode="outlined"
+        style={{ marginBottom: 16 }}
+      />
+      <TextInput
+        label="Mot de passe"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        mode="outlined"
+        style={{ marginBottom: 16 }}
+      />
+      <Button mode="contained" onPress={handleSignIn}>
+        Se connecter
+      </Button>
     </View>
   );
 }
