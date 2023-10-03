@@ -15,7 +15,7 @@ const SignInScreen = () => {
     signInWithEmailAndPassword(auth, email, password) 
       .then((userCredential) => {
         console.log('Connexion réussie:', userCredential.user);
-        navigation.navigate('Home1');  
+        navigation.navigate('Home');  
       })
       .catch((error) => {
         console.error('Erreur lors de la connexion:', error);

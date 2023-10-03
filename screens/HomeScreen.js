@@ -1,41 +1,53 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Button } from 'react-native';
+import { View, ScrollView, Button, StyleSheet } from 'react-native';
 import { db } from '../firebase/Config';
-import { getDatabase, ref, onValue } from 'firebase/database';
+import { ref, onValue } from 'firebase/database';
 import { useNavigation } from '@react-navigation/native';
+import BoardBanner from '../components/BoardBanner';
 
 const HomeScreen = () => {
-  const [projects, setProjects] = useState([]);
+  const [boards, setBoards] = useState([]);
   const navigation = useNavigation();
 
   useEffect(() => {
-    const projectsRef = ref(db, 'projects');
-    const unsubscribe = onValue(projectsRef, (snapshot) => {
-      const fetchedProjects = [];
+    const boardsRef = ref(db, 'boards');
+    const unsubscribe = onValue(boardsRef, (snapshot) => {
+      const fetchedBoards = [];
       snapshot.forEach((childSnapshot) => {
-        fetchedProjects.push({
+        fetchedBoards.push({
           id: childSnapshot.key,
           ...childSnapshot.val(),
         });
       });
-      setProjects(fetchedProjects);
+      setBoards(fetchedBoards);
     });
 
     return () => unsubscribe();
   }, []);
 
+  const navigateToBoard = (boardId, boardName) => {
+    navigation.navigate('Board', { boardId, boardName });
+  };
+
+  const navigateToNewProject = () => {
+    navigation.navigate('NewProject');
+  };
+
   return (
-    <View>
-      {projects.map((project) => (
-        <View key={project.id}>
-          <Text>{project.name}</Text>
-          <Button
-            title="Voir le projet"
-            onPress={() => navigation.navigate('Project', { projectId: project.id })}
-          />
-        </View>
+    <ScrollView style={styles.container}>
+      <Button title="Create New Project" onPress={navigateToNewProject} />
+      {boards.map((board) => (
+        <BoardBanner key={board.id} board={board} navigateToBoard={navigateToBoard} />
       ))}
-    </View>
+    </ScrollView>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});
+
 export default HomeScreen;
