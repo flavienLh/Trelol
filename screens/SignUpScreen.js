@@ -4,6 +4,7 @@ import { TextInput, Button } from 'react-native-paper';
 import { auth } from '../firebase/Config';
 import { useNavigation } from '@react-navigation/native';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { StyleSheet } from 'react-native';
 
 const SignUpScreen = () => {
   const [email, setEmail] = useState('');
@@ -22,23 +23,23 @@ const SignUpScreen = () => {
   };
 
   return (
-    <View style={{ padding: 16 }}>
+    <View style={styles.container}>
       <TextInput
         label="Email"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
-        style={{ marginBottom: 16 }}
+        style={styles.input}
       />
       <TextInput
         label="Mot de passe"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        style={{ marginBottom: 16 }}
+        style={styles.input}
       />
-      <Button mode="contained" onPress={handleSignUp} style={{ marginBottom: 16 }}>
+      <Button mode="contained" onPress={handleSignUp} style={styles.button}>
         S'inscrire
       </Button>
       <Button mode="text" onPress={() => navigation.navigate('SignIn')}>
@@ -46,7 +47,23 @@ const SignUpScreen = () => {
       </Button>
     </View>
   );
-}
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  input: {
+    marginBottom: 16,
+    width: '100%',
+  },
+  button: {
+    marginBottom: 16,
+  },
+});
 
 export default SignUpScreen;
 
