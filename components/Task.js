@@ -10,18 +10,6 @@ const Task = ({ task, boardId, columnId }) => {
   console.log('Board ID:', boardId);
   console.log('Column ID:', columnId);
   
-}
-const handleEdit = (newName, boardId, columnId, task) => {
-  const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
-  console.log('Task Ref Path:', taskRef);
-  update(taskRef, { name: newName })
-    .then(() => {
-      console.log('Task updated!');
-      setNewTaskName(newName); 
-    })
-    .catch((error) => {
-      console.error('Error updating task:', error);
-    });
 
   const handleDelete = async () => {
     try {
@@ -53,7 +41,7 @@ const handleEdit = (newName, boardId, columnId, task) => {
       return;
     }
   
-    handleEdit(newTaskName, boardId, columnId, task);
+    handleEdit(newTaskName);
     setEditModalVisible(false);
   };
 
