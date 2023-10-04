@@ -3,6 +3,7 @@ import { View, Text, Button, TextInput, ScrollView, StyleSheet, Dimensions } fro
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { db } from '../firebase/Config';
 import { ref, onValue, push, set } from 'firebase/database';
+import Task from '../components/Task';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -48,9 +49,12 @@ const ColumnScreen = () => {
       <Button title="Add Task" onPress={handleAddTask} />
       <ScrollView style={styles.tasksContainer}>
         {tasks.map((task) => (
-          <Text key={task.id} style={styles.task}>
-            {task.name}
-          </Text>
+          <Task 
+            key={task.id} 
+            task={task} 
+            boardId={boardId} 
+            columnId={columnId}
+          />
         ))}
       </ScrollView>
     </View>

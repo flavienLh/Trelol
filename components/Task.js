@@ -1,16 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, Button, TextInput, StyleSheet } from 'react-native';
-import { ref, remove, update, onValue, off } from 'firebase/database';
+import { ref, remove, update } from 'firebase/database';
 import { db } from '../firebase/Config';
+import PropTypes from 'prop-types';
 
 const Task = ({ task, boardId, columnId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newTaskName, setNewTaskName] = useState(task.name);
-  console.log('Board ID:', boardId);
-  console.log('Column ID:', columnId);
   
-
   const handleDelete = async () => {
     try {
       if (!boardId || !columnId || !task.id) {
@@ -27,10 +25,25 @@ const Task = ({ task, boardId, columnId }) => {
       alert('Error deleting task. Please try again.');
     }
   };
-  
-  
+
+  const handleEdit = async (newName) => {
+    try {
+        if (!boardId || !columnId || !task.id) {
+            console.error('Invalid references: ', { boardId, columnId, taskId: task.id });
+            alert('Cannot edit task due to invalid references.');
+            return;
+        }
+
+        const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
+        await update(taskRef, { name: newName });
+        console.log('Task updated!');
+    } catch (error) {
+        console.error('Error editing task:', error);
+        alert('Error editing task. Please try again.');
+    }
+  };
+
   const handleEditPress = () => {
-    console.log('Edit Pressed');
     setModalVisible(false);  
     setEditModalVisible(true);  
   };
@@ -45,8 +58,15 @@ const Task = ({ task, boardId, columnId }) => {
     setEditModalVisible(false);
   };
 
-
-
+  Task.propTypes = {
+    task: PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      name: PropTypes.string.isRequired,
+      // Add other task fields as necessary
+    }).isRequired,
+    boardId: PropTypes.string.isRequired,
+    columnId: PropTypes.string.isRequired,
+  };
 
 
   return (

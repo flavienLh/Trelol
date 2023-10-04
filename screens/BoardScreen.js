@@ -3,7 +3,7 @@ import { View, Text, ScrollView, Button, StyleSheet, TouchableOpacity } from 're
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { db } from '../firebase/Config';
 import { ref, onValue } from 'firebase/database';
-import Task from '../components/Task'; // Assurez-vous que ce composant est bien défini
+import Task from '../components/Task';
 
 const BoardScreen = () => {
   const [columns, setColumns] = useState([]);
@@ -14,22 +14,26 @@ const BoardScreen = () => {
   useEffect(() => {
     const columnsRef = ref(db, `boards/${boardId}/columns`);
     const unsubscribe = onValue(columnsRef, (snapshot) => {
-      const fetchedColumns = [];
-      snapshot.forEach((childSnapshot) => {
-        const columnData = childSnapshot.val();
-        const tasksArray = columnData.tasks 
-          ? Object.keys(columnData.tasks).map(key => ({
-              id: key,
-              ...columnData.tasks[key],
-            }))
-          : [];
-        fetchedColumns.push({
-          id: childSnapshot.key,
-          ...columnData,
-          tasks: tasksArray,
+      try {
+        const fetchedColumns = [];
+        snapshot.forEach((childSnapshot) => {
+          const columnData = childSnapshot.val();
+          const tasksArray = columnData.tasks 
+            ? Object.keys(columnData.tasks).map(key => ({
+                id: key,
+                ...columnData.tasks[key],
+              }))
+            : [];
+          fetchedColumns.push({
+            id: childSnapshot.key,
+            ...columnData,
+            tasks: tasksArray,
+          });
         });
-      });
-      setColumns(fetchedColumns);
+        setColumns(fetchedColumns);
+      } catch (error) {
+        console.error("Error fetching columns:", error);
+      }
     });
   
     return () => unsubscribe();
@@ -51,10 +55,9 @@ const BoardScreen = () => {
             onPress={() => navigation.navigate('AddTask', { boardId, columnId: column.id })}
           >
             <Text style={styles.columnTitle}>{column.name}</Text>
-            {/* Display tasks */}
             <ScrollView style={styles.tasksContainer}>
-              {column.tasks?.map((task, index) => (
-                <Task key={index} task={task} />
+              {column.tasks?.map((task) => (
+                <Task key={task.id} task={task} boardId={boardId} columnId={column.id} />
               ))}
             </ScrollView>
           </TouchableOpacity>
@@ -78,7 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   column: {
-    width: 150, // or adjust according to your needs
+    width: 150,
     padding: 10,
     borderWidth: 1,
     borderColor: '#ccc',
@@ -95,6 +98,7 @@ const styles = StyleSheet.create({
 });
 
 export default BoardScreen;
+
 
 
 
