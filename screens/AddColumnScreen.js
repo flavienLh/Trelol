@@ -11,8 +11,13 @@ const AddColumnScreen = () => {
   const { boardId } = route.params;
 
   const handleAddColumn = () => {
+    if(columnName.trim() === '') {
+      alert('Task name cannot be empty!');
+      return;
+    }
     const newColumnRef = push(ref(db, `boards/${boardId}/columns`));
     set(newColumnRef, { name: columnName });
+    console.log("Column Name:", columnName);
     navigation.goBack();
   };
 

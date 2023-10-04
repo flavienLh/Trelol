@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
 import { db } from '../firebase/Config';
-import { ref, push, set } from 'firebase/database'; // Assurez-vous d'importer 'set' ici
+import { ref, push, set } from 'firebase/database';
 import { useNavigation } from '@react-navigation/native';
 
 const NewProjectScreen = () => {
@@ -10,7 +10,8 @@ const NewProjectScreen = () => {
 
   const handleCreateProject = () => {
     const newProjectRef = push(ref(db, 'boards'));
-    set(newProjectRef, { name: projectName }); // Utilisez 'set' ici
+    set(newProjectRef, { name: projectName });
+    console.log("Project Name:", projectName); 
     navigation.navigate('Home');
   };
 

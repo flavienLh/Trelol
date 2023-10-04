@@ -7,33 +7,40 @@ const Task = ({ task, boardId, columnId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newTaskName, setNewTaskName] = useState(task.name);
+  console.log('Board ID:', boardId);
+  console.log('Column ID:', columnId);
+  
+}
+const handleEdit = (newName, boardId, columnId, task) => {
+  const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
+  console.log('Task Ref Path:', taskRef);
+  update(taskRef, { name: newName })
+    .then(() => {
+      console.log('Task updated!');
+      setNewTaskName(newName); 
+    })
+    .catch((error) => {
+      console.error('Error updating task:', error);
+    });
 
-  const handleEdit = (newName) => {
-    const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
-    update(taskRef, { name: newName })
-      .then(() => {
-        console.log('Task updated!');
-        setNewTaskName(newName); // Update the local state after the DB update
-      })
-      .catch((error) => {
-        console.error('Error updating task:', error);
-      });
+  const handleDelete = async () => {
+    try {
+      if (!boardId || !columnId || !task.id) {
+        console.error('Invalid references: ', { boardId, columnId, taskId: task.id });
+        alert('Cannot delete task due to invalid references.');
+        return;
+      }
+  
+      const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
+      await remove(taskRef);
+      console.log('Task deleted!');
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      alert('Error deleting task. Please try again.');
+    }
   };
   
-
-  const handleDelete = () => {
-    const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
-    remove(taskRef)
-      .then(() => {
-        console.log('Task deleted!');
-      })
-      .catch((error) => {
-        console.error('Error deleting task:', error);
-      });
-  };
-
   
-
   const handleEditPress = () => {
     console.log('Edit Pressed');
     setModalVisible(false);  
@@ -46,9 +53,11 @@ const Task = ({ task, boardId, columnId }) => {
       return;
     }
   
-    handleEdit(newTaskName);
+    handleEdit(newTaskName, boardId, columnId, task);
     setEditModalVisible(false);
   };
+
+
 
 
 
