@@ -1,30 +1,39 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { db, handleAdd } from '../firebase/Config';
-import { ref, push, set } from 'firebase/database';
+import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { useRoute, useNavigation } from '@react-navigation/native';
+import { handleAdd } from '../firebase/Config';
 
 const AddTaskScreen = () => {
   const [taskName, setTaskName] = useState('');
-  const navigation = useNavigation();
   const route = useRoute();
+  const navigation = useNavigation();
   const { boardId, columnId } = route.params;
 
-  const handleAddTask = () => {
-    handleAdd('boards/' + boardId + '/columns/' + columnId + '/tasks', { name: taskName });
-    console.log('Created the task: ' + taskName);
-    navigation.goBack();
+  const addTask = async () => {
+    if (taskName.trim() === '') {
+      Alert.alert('Error', 'Task name cannot be empty!');
+      return;
+    }
+
+    try {
+      await handleAdd(`boards/${boardId}/columns/${columnId}/tasks`, { name: taskName });
+      navigation.goBack();
+    } catch (error) {
+      console.error("Error adding task:", error);
+      Alert.alert('Error', 'Error adding task. Please try again.');
+    }
   };
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Add Task</Text>
       <TextInput
         style={styles.input}
         placeholder="Task Name"
         value={taskName}
         onChangeText={setTaskName}
       />
-      <Button title="Add Task" onPress={handleAddTask} />
+      <Button title="Add Task" onPress={addTask} />
     </View>
   );
 };
@@ -32,15 +41,19 @@ const AddTaskScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     padding: 16,
+    backgroundColor: '#f8f8f8',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
   },
   input: {
     height: 40,
-    borderColor: 'gray',
+    marginVertical: 12,
     borderWidth: 1,
-    marginBottom: 20,
-    paddingLeft: 8,
+    padding: 10,
   },
 });
 

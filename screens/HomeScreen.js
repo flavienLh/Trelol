@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Button, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Button, StyleSheet, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { db } from '../firebase/Config';
+import { db, handleDelete } from '../firebase/Config';
 import { ref, onValue } from 'firebase/database';
 
 const HomeScreen = () => {
@@ -29,10 +29,41 @@ const HomeScreen = () => {
     navigation.navigate('Board', { boardId, boardName });
   };
 
+  const deleteBoard = async (boardId) => {
+    try {
+      if (!boardId) {
+        console.error('Invalid board reference: ', boardId);
+        alert('Cannot delete board due to invalid reference.');
+        return;
+      }
+      await handleDelete(`boards/${boardId}`);
+      console.log('Board deleted!');
+    } catch (error) {
+      console.error('Error deleting board:', error);
+      alert('Error deleting board. Please try again.');
+    }
+  };
+
+  const confirmDeleteBoard = (boardId, boardName) => {
+    Alert.alert(
+      "Supprimer le Board",
+      `Êtes-vous sûr de vouloir supprimer le board "${boardName}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        { text: "OK", onPress: () => deleteBoard(boardId) }
+      ],
+      { cancelable: false }
+    );
+  };
+
   const renderBoard = ({ item }) => (
     <TouchableOpacity
       style={styles.boardCard}
       onPress={() => navigateToBoard(item.id, item.name)}
+      onLongPress={() => confirmDeleteBoard(item.id, item.name)}
     >
       <Text style={styles.boardTitle}>{item.name}</Text>
     </TouchableOpacity>
