@@ -71,11 +71,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
+    backgroundColor: '#f8f8f8', // Ajout d'une couleur de fond claire
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#4a4a4a', // Couleur de texte plus douce
   },
   columnsContainer: {
     flexDirection: 'row',
@@ -84,18 +86,27 @@ const styles = StyleSheet.create({
     width: 150,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#ddd', // Bordure plus douce
     marginRight: 10,
+    borderRadius: 5, // Coins arrondis
+    backgroundColor: '#fff', // Fond blanc pour les colonnes
+    shadowColor: '#000', // Ombres pour un effet "levé"
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 3, 
   },
   columnTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#4a4a4a',
   },
   tasksContainer: {
     maxHeight: 200, 
   },
 });
+
 
 export default BoardScreen;
 
