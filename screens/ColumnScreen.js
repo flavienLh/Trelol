@@ -70,39 +70,30 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f8f8f8', // Couleur de fond plus douce
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#4a4a4a', // Couleur de texte plus douce
   },
   input: {
     height: 40,
-    borderColor: '#ddd', // Bordure plus douce
+    borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 20,
     paddingLeft: 8,
-    borderRadius: 5, // Coins arrondis
   },
   tasksContainer: {
     marginTop: 10,
   },
   task: {
     fontSize: 18,
-    backgroundColor: '#fff', // Fond blanc
+    backgroundColor: '#e0e0e0',
     padding: 10,
     marginVertical: 5,
     borderRadius: 5,
-    shadowColor: '#000', // Ombres pour un effet "levé"
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 3,
   },
 });
-
 
 export default ColumnScreen;
 
