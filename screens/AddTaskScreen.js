@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { db } from '../firebase/Config';
+import { db, handleAdd } from '../firebase/Config';
 import { ref, push, set } from 'firebase/database';
 
 const AddTaskScreen = () => {
@@ -11,8 +11,8 @@ const AddTaskScreen = () => {
   const { boardId, columnId } = route.params;
 
   const handleAddTask = () => {
-    const newTaskRef = push(ref(db, `boards/${boardId}/columns/${columnId}/tasks`));
-    set(newTaskRef, { name: taskName });
+    handleAdd('boards/' + boardId + '/columns/' + columnId + '/tasks', { name: taskName });
+    console.log('Created the task: ' + taskName);
     navigation.goBack();
   };
 

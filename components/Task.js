@@ -1,24 +1,22 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, Button, TextInput, StyleSheet } from 'react-native';
 import { ref, remove, update } from 'firebase/database';
-import { db } from '../firebase/Config';
+import { db, handleDelete, handleEdit } from '../firebase/Config';
 import PropTypes from 'prop-types';
 
 const Task = ({ task, boardId, columnId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newTaskName, setNewTaskName] = useState(task.name);
-  
-  const handleDelete = async () => {
+
+  const handleTaskDelete = async () => {
     try {
       if (!boardId || !columnId || !task.id) {
         console.error('Invalid references: ', { boardId, columnId, taskId: task.id });
         alert('Cannot delete task due to invalid references.');
         return;
       }
-  
-      const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
-      await remove(taskRef);
+      await handleDelete('boards/' + boardId + '/columns/' + columnId + '/tasks/' + task.id);
       console.log('Task deleted!');
     } catch (error) {
       console.error('Error deleting task:', error);
@@ -26,7 +24,7 @@ const Task = ({ task, boardId, columnId }) => {
     }
   };
 
-  const handleEdit = async (newName) => {
+  const handleTaskEdit = async (newName) => {
     try {
         if (!boardId || !columnId || !task.id) {
             console.error('Invalid references: ', { boardId, columnId, taskId: task.id });
@@ -34,8 +32,7 @@ const Task = ({ task, boardId, columnId }) => {
             return;
         }
 
-        const taskRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks/${task.id}`);
-        await update(taskRef, { name: newName });
+        await handleEdit('boards/' + boardId + '/columns/' + columnId + '/tasks/' + task.id, {name:newName});
         console.log('Task updated!');
     } catch (error) {
         console.error('Error editing task:', error);
@@ -54,7 +51,7 @@ const Task = ({ task, boardId, columnId }) => {
       return;
     }
   
-    handleEdit(newTaskName);
+    handleTaskEdit(newTaskName);
     setEditModalVisible(false);
   };
 
@@ -88,7 +85,7 @@ const Task = ({ task, boardId, columnId }) => {
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
             <Button title="Edit" onPress={handleEditPress} />
-            <Button title="Delete" onPress={handleDelete} />
+            <Button title="Delete" onPress={handleTaskDelete} />
             <Button title="Cancel" onPress={() => setModalVisible(false)} />
           </View>
         </View>

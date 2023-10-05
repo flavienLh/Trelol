@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TextInput, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { db } from '../firebase/Config';
-import { ref, onValue, push, set } from 'firebase/database';
+import { ref, onValue, push, set, handleAdd, createRef } from 'firebase/database';
 import Task from '../components/Task';
 
 const screenWidth = Dimensions.get('window').width;
@@ -24,18 +24,12 @@ const ColumnScreen = () => {
           ...childSnapshot.val(),
         });
       });
+      console.log(fetchedTasks);
       setTasks(fetchedTasks);
     });
 
     return () => unsubscribe();
   }, []);
-
-  const handleAddTask = () => {
-    const tasksRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks`);
-    const newTaskRef = push(tasksRef);
-    set(newTaskRef, { name: newTaskName });
-    setNewTaskName('');
-  };
 
   return (
     <View style={styles.container}>

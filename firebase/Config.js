@@ -1,6 +1,6 @@
 import { initializeApp, getApp } from 'firebase/app';
 import { initializeAuth, getAuth, getReactNativePersistence } from 'firebase/auth';
-import { getDatabase, ref, set, get, child, query, orderByKey, equalTo } from 'firebase/database';
+import { getDatabase, update, remove, push , ref, set, get, child, query, orderByKey, equalTo } from 'firebase/database';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig = {
@@ -21,89 +21,41 @@ const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 
-const addCommentaryToTask = (boardId, columnId, taskId, commentaryData) => {
-  try {
-    // Reference to the 'boards' node in your database
-    const boardsRef = ref(db, 'boards');
-
-    // Assuming you have a structure like 'boards/boardId/columns/columnId/tasks' in your database,
-    // construct the reference to the task's commentary
-    const taskCommentaryRef = ref(boardsRef, boardId + '/columns/'+ columnId +'/tasks/' + taskId + '/commentaries');
-
-    // Push a new commentary node to generate a unique key
-    const newCommentaryRef = push(taskCommentaryRef);
-
-    // Get the generated key
-    const newCommentaryKey = newCommentaryRef.key;
-
-    // Set the commentary data under the generated key
-    set(newCommentaryRef, commentaryData);
-
-    console.log('New commentary added to task', taskId, 'with key:', newCommentaryKey);
-  } catch (error) {
-    console.error('Error adding a new commentary:', error);
-  }
+const handleEdit = async (uri, data) => {
+    try{
+    const newRef = ref(db, uri);
+    await update(newRef, data);
+    console.log('The update was successful');
+      } catch (error) {
+        console.error('Error during the edit: ', error);
+      }
 };
 
-const addTaskToColumn = (boardId, columnId, taskData) => {
-  try {
-    // Reference to the 'boards' node in your database
-    const boardsRef = ref(db, 'boards');
+const handleDelete = async (uri) => {
+    try {
+            const newRef = ref(db, uri);
+            const snapshot = await get(newRef);
 
-    // Assuming you have a structure like 'boards/boardId/columns/columnId/tasks' in your database,
-
-    const taskRef = ref(boardsRef, boardId + '/columns/'+ columnId +'/tasks/');
-
-    const newTaskRef = push(taskRef);
-
-    // Get the generated key
-    const newTaskKey = newTaskRef.key;
-
-    set(newTaskRef, taskData);
-
-    console.log('New task added to column', columnId, 'with key:', newTaskKey);
-  } catch (error) {
-    console.error('Error adding a new task:', error);
-  }
+            if (snapshot.exists()) {
+                await remove(newRef);
+                console.log('Data removal completed');
+            } else {
+                console.warn('Data does not exist at the specified path');
+            }
+        } catch (error) {
+            console.error('Error during the removal: ', error);
+        }
 };
 
-const addColumnToBoard = (boardId, columnData) => {
-  try {
-    // Reference to the 'boards' node in your database
-    const boardsRef = ref(db, 'boards');
-
-    // Assuming you have a structure like 'boards/boardId/columns/' in your database,
-    const columnRef = ref(boardsRef, boardId + '/columns/');
-
-    const newColumnRef = push(columnRef);
-
-    // Get the generated key
-    const newColumnKey = newColumnRef.key;
-
-    set(newColumnRef, columnData);
-
-    console.log('New column added to board', boardId, 'with key:', newColumnKey);
-  } catch (error) {
-    console.error('Error adding a new task:', error);
-  }
+const handleAdd = async (uri, data) => {
+    try{
+    const newRef = push(ref(db, uri));
+    console.log('ref : ' + newRef);
+    await set(newRef, data);
+    console.log('data writing completed');
+      } catch (error) {
+        console.error('Error while adding a new data: ', error);
+      }
 };
 
-const addNewBoard = (boardData) => {
-  try {
-    // Reference to the 'boards' node in your database
-    const boardsRef = ref(db, 'boards');
-
-    const newBoardRef = push(boardsRef);
-
-    // Get the generated key
-    const newBoardKey = newBoardRef.key;
-
-    set(newBoardRef, boardData);
-
-    console.log('Created a new Board with key:', newBoardKey);
-  } catch (error) {
-    console.error('Error adding a new task:', error);
-  }
-};
-
-export { app, auth, getApp, getAuth, addNewBoard, addColumnToBoard, addTaskToColumn, addCommentaryToTask };
+export { app, auth, getApp, getAuth, handleEdit, handleDelete, handleAdd};
