@@ -2,34 +2,45 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Button, TextInput, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { db } from '../firebase/Config';
-import { ref, onValue, push, set, handleAdd, createRef } from 'firebase/database';
+import { ref, onValue, push, set, createRef } from 'firebase/database';
 import Task from '../components/Task';
 
 const screenWidth = Dimensions.get('window').width;
 
 const ColumnScreen = () => {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState({});
   const [newTaskName, setNewTaskName] = useState('');
   const navigation = useNavigation();
   const route = useRoute();
   const { boardId, columnId, columnName } = route.params;
 
   useEffect(() => {
-    const tasksRef = ref(db, `boards/${boardId}/columns/${columnId}/tasks`);
-    const unsubscribe = onValue(tasksRef, (snapshot) => {
-      const fetchedTasks = [];
-      snapshot.forEach((childSnapshot) => {
-        fetchedTasks.push({
-          id: childSnapshot.key,
-          ...childSnapshot.val(),
-        });
+    const columnsRef = ref(db, `boards/${boardId}/columns`);
+    const unsubscribe = onValue(columnsRef, (snapshot) => {
+      const columnTasksData = {};
+      snapshot.forEach((columnSnapshot) => {
+        const columnData = columnSnapshot.val();
+        const currentColumnId = columnSnapshot.key;
+        if (columnData.tasks) {
+          const tasksData = [];
+          Object.keys(columnData.tasks).forEach((taskId) => {
+            const taskData = columnData.tasks[taskId];
+            // Vérifiez si la tâche appartient à la colonne actuelle
+            if (taskData.columnId === currentColumnId) {
+              tasksData.push({
+                id: taskId,
+                ...taskData,
+              });
+            }
+          });
+          columnTasksData[currentColumnId] = tasksData;
+        }
       });
-      console.log(fetchedTasks);
-      setTasks(fetchedTasks);
+      setTasks(columnTasksData);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [boardId]);
 
   return (
     <View style={styles.container}>
@@ -42,7 +53,7 @@ const ColumnScreen = () => {
       />
       <Button title="Add Task" onPress={handleAddTask} />
       <ScrollView style={styles.tasksContainer}>
-        {tasks.map((task) => (
+        {tasks[columnId] && tasks[columnId].map((task) => (
           <Task 
             key={task.id} 
             task={task} 

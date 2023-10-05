@@ -1,54 +1,68 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, ScrollView, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { db } from '../firebase/Config';
 import { ref, onValue } from 'firebase/database';
+import Task from '../components/Task';
 
-const BoardScreen = ({ route }) => {
+const BoardScreen = () => {
   const [columns, setColumns] = useState([]);
-  const { boardId, boardName } = route.params;
   const navigation = useNavigation();
+  const route = useRoute();
+  const { boardId, boardName } = route.params;
 
   useEffect(() => {
     const columnsRef = ref(db, `boards/${boardId}/columns`);
     const unsubscribe = onValue(columnsRef, (snapshot) => {
-      const fetchedColumns = [];
-      snapshot.forEach((childSnapshot) => {
-        const columnData = childSnapshot.val();
-        fetchedColumns.push({
-          id: childSnapshot.key,
-          ...columnData,
+      try {
+        const fetchedColumns = [];
+        snapshot.forEach((childSnapshot) => {
+          const columnData = childSnapshot.val();
+          const tasksArray = columnData.tasks 
+            ? Object.keys(columnData.tasks).map(key => ({
+                id: key,
+                ...columnData.tasks[key],
+              }))
+            : [];
+          fetchedColumns.push({
+            id: childSnapshot.key,
+            ...columnData,
+            tasks: tasksArray,
+          });
         });
-      });
-      setColumns(fetchedColumns);
+        setColumns(fetchedColumns);
+      } catch (error) {
+        console.error("Error fetching columns:", error);
+      }
     });
+  
     return () => unsubscribe();
-  }, [boardId]);
+  }, []);
 
-  const navigateToAddTaskScreen = (columnId, columnName) => {
-    navigation.navigate('AddTask', { boardId, columnId, columnName });
+  const navigateToAddColumn = () => {
+    navigation.navigate('AddColumn', { boardId });
   };
-
-  const renderColumn = ({ item }) => (
-    <TouchableOpacity
-      style={styles.columnCard}
-      onPress={() => navigateToAddTaskScreen(item.id, item.name)}
-    >
-      <Text style={styles.columnTitle}>{item.name}</Text>
-    </TouchableOpacity>
-  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{boardName}</Text>
-      <FlatList
-        data={columns}
-        renderItem={renderColumn}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.list}
-      />
+      <Button title="Add Column" onPress={navigateToAddColumn} />
+      <ScrollView horizontal style={styles.columnsContainer}>
+        {columns.map((column) => (
+          <TouchableOpacity 
+            key={column.id} 
+            style={styles.column}
+            onPress={() => navigation.navigate('AddTask', { boardId, columnId: column.id })}
+          >
+            <Text style={styles.columnTitle}>{column.name}</Text>
+            <ScrollView style={styles.tasksContainer}>
+              {column.tasks?.map((task) => (
+                <Task key={task.id} task={task} boardId={boardId} columnId={column.id} />
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -57,42 +71,33 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#f8f8f8',
   },
   title: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#4fc3f7',
+    marginBottom: 10,
   },
-  list: {
+  columnsContainer: {
     flexDirection: 'row',
   },
-  columnCard: {
-    backgroundColor: '#fff',
-    padding: 16,
-    margin: 8,
-    borderRadius: 8,
+  column: {
     width: 150,
-    height: '80%',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    marginRight: 10,
   },
   columnTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#4fc3f7',
-    marginBottom: 12,
+    marginBottom: 10,
+  },
+  tasksContainer: {
+    maxHeight: 200, 
   },
 });
 
 export default BoardScreen;
-
 
 
 
