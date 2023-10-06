@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, Button, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Button, TextInput, StyleSheet, ScrollView} from 'react-native';
 import { ref, remove, update, onValue } from 'firebase/database';
 import { db, handleDelete, handleEdit, getColumn } from '../firebase/Config';
 import PropTypes from 'prop-types';
@@ -276,27 +276,32 @@ return (
       visible={moveModalVisible}
       onRequestClose={() => {
         setMoveModalVisible(!moveModalVisible);
-      }}
-    >
+      }}>
       <View style={styles.centeredView}>
         <View style={styles.modalView}>
           <Text>Select a column to move the task to:</Text>
-          {columns.length > 0 ? (
-            <RNPickerSelect
-              onValueChange={(value) => setSelectedColumnId(value)}
-              items={columns.map((column) => ({
-                label: column.name,
-                value: column.id,
-              }))}
-              placeholder={{ label: 'Select a column...', value: null }}
-              style={{
-                inputIOS: styles.inputIOS,
-                inputAndroid: styles.inputAndroid,
-              }}
-            />
-          ) : (
-            <Text>No columns available</Text>
-          )}
+          <ScrollView style={{ maxHeight: 200 }}>
+            {/* Wrap all Text elements within a View */}
+            {columns.length > 0 ? (
+              columns.map((column, key) => (
+                <TouchableOpacity
+                  key={column.id} // Add a unique key for each item
+                  onPress={() => setSelectedColumnId(column.id)}>
+                  <Text
+                  style={{
+                      backgroundColor: '#007bff', // Background color for the "button"
+                      color: 'white', // Text color for the "button"
+                      padding: 10, // Padding around the text
+                      marginVertical: 5, // Vertical margin between columns
+                      borderRadius: 5, // Border radius to round the corners
+                      textAlign: 'center', // Center-align the text horizontally
+                    }}>{column.name}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text>No columns available</Text>
+            )}
+          </ScrollView>
           <Button title="Confirm" onPress={handleMoveTask} />
           <Button title="Cancel" onPress={() => setMoveModalVisible(false)} />
         </View>
