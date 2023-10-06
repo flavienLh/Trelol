@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Modal, Button, TextInput, StyleSheet } fr
 import { ref, remove, update, onValue } from 'firebase/database';
 import { db, handleDelete, handleEdit, getColumn } from '../firebase/Config';
 import PropTypes from 'prop-types';
-import { Picker } from '@react-native-picker/picker';
+import RNPickerSelect from 'react-native-picker-select';
 
 const Task = ({ task, boardId, columnId }) => {
   const [modalVisible, setModalVisible] = useState(false);
@@ -43,7 +43,7 @@ const Task = ({ task, boardId, columnId }) => {
     });
   
     return () => unsubscribe();
-  }, []);
+  }, [boardId]);
 
   const handleTaskDelete = async () => {
     try {
@@ -122,9 +122,35 @@ const Task = ({ task, boardId, columnId }) => {
 };
 
 const handleMovePress = () => {
-  console.log("Move button pressed");
   setDescriptionModalVisible(false);
   setMoveModalVisible(true);
+};
+
+const handleMove = async (boardId, fromColumnId, toColumnId, taskId, task) => {
+  try {
+    // Vérifiez si les ID sont valides
+    if (!boardId || !fromColumnId || !toColumnId || !taskId || !task) {
+      console.error('Invalid IDs:', { boardId, fromColumnId, toColumnId, taskId });
+      alert('Cannot move task due to invalid IDs.');
+      return;
+    }
+
+    // Construisez les chemins de référence pour la tâche dans les colonnes source et de destination
+    const fromPath = `boards/${boardId}/columns/${fromColumnId}/tasks/${taskId}`;
+    const toPath = `boards/${boardId}/columns/${toColumnId}/tasks/${taskId}`;
+
+    
+    const updates = {};
+    updates[fromPath] = null; 
+    updates[toPath] = task;  
+
+    // Mettez à jour la base de données
+    await update(ref(db), updates);
+    console.log('Task moved successfully!');
+  } catch (error) {
+    console.error('Error moving task:', error);
+    alert('Error moving task. Please try again.');
+  }
 };
 
 const handleMoveTask = async () => {
@@ -145,7 +171,6 @@ const handleMoveTask = async () => {
     alert('Error moving task. Please try again.');
   }
 };
-
 
 return (
   <View style={styles.taskContainer}>
@@ -246,29 +271,37 @@ return (
     </Modal>
     {/* Move Task Modal */}
     <Modal
-        animationType="slide"
-        transparent={true}
-        visible={moveModalVisible}
-        onRequestClose={() => {
-          setMoveModalVisible(!moveModalVisible);
-        }}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text>Select a column to move the task to:</Text>
-            <Picker
-              selectedValue={selectedColumnId}
-              onValueChange={(itemValue, itemIndex) => setSelectedColumnId(itemValue)}
-            >
-              {columns.map((column) => (
-                <Picker.Item label={column.name} value={column.id} key={column.id} />
-              ))}
-            </Picker>
-            <Button title="Confirm" onPress={handleMoveTask} />
-            <Button title="Cancel" onPress={() => setMoveModalVisible(false)} />
-          </View>
+      animationType="slide"
+      transparent={true}
+      visible={moveModalVisible}
+      onRequestClose={() => {
+        setMoveModalVisible(!moveModalVisible);
+      }}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Text>Select a column to move the task to:</Text>
+          {columns.length > 0 ? (
+            <RNPickerSelect
+              onValueChange={(value) => setSelectedColumnId(value)}
+              items={columns.map((column) => ({
+                label: column.name,
+                value: column.id,
+              }))}
+              placeholder={{ label: 'Select a column...', value: null }}
+              style={{
+                inputIOS: styles.inputIOS,
+                inputAndroid: styles.inputAndroid,
+              }}
+            />
+          ) : (
+            <Text>No columns available</Text>
+          )}
+          <Button title="Confirm" onPress={handleMoveTask} />
+          <Button title="Cancel" onPress={() => setMoveModalVisible(false)} />
         </View>
-      </Modal>
+      </View>
+    </Modal>
     </View>
   );
 };
@@ -321,6 +354,41 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     width: 200, // or adjust according to your needs
     textAlign: 'center',
+  },
+  enteredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalView: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    elevation: 5,
+    alignItems: 'center',
+  },
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    width: '100%',
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 8,
+    color: 'black',
+    paddingRight: 30, // to ensure the text is never behind the icon
+    width: '100%',
   },
 });
 
