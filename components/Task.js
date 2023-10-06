@@ -1,13 +1,49 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, Button, TextInput, StyleSheet } from 'react-native';
-import { ref, remove, update } from 'firebase/database';
-import { db, handleDelete, handleEdit } from '../firebase/Config';
+import { ref, remove, update, onValue } from 'firebase/database';
+import { db, handleDelete, handleEdit, getColumn } from '../firebase/Config';
 import PropTypes from 'prop-types';
+import { Picker } from '@react-native-picker/picker';
 
 const Task = ({ task, boardId, columnId }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [newTaskName, setNewTaskName] = useState(task.name);
+  const [descriptionModalVisible, setDescriptionModalVisible] = useState(false);
+  const [newDescription, setNewDescription] = useState(task.description || '');
+  const [descriptionEditModalVisible, setDescriptionEditModalVisible] = useState(false);
+  const [newColumnId, setNewColumnId] = useState('');
+  const [moveModalVisible, setMoveModalVisible] = useState(false);
+  const [selectedColumnId, setSelectedColumnId] = useState('');
+  const [columns, setColumns] = useState([]);
+
+  useEffect(() => {
+    const columnsRef = ref(db, `boards/${boardId}/columns`);
+    const unsubscribe = onValue(columnsRef, (snapshot) => {
+      try {
+        const fetchedColumns = [];
+        snapshot.forEach((childSnapshot) => {
+          const columnData = childSnapshot.val();
+          const tasksArray = columnData.tasks 
+            ? Object.keys(columnData.tasks).map(key => ({
+                id: key,
+                ...columnData.tasks[key],
+              }))
+            : [];
+          fetchedColumns.push({
+            id: childSnapshot.key,
+            ...columnData,
+            tasks: tasksArray,
+          });
+        });
+        setColumns(fetchedColumns);
+      } catch (error) {
+        console.error("Error fetching columns:", error);
+      }
+    });
+  
+    return () => unsubscribe();
+  }, []);
 
   const handleTaskDelete = async () => {
     try {
@@ -65,51 +101,171 @@ const Task = ({ task, boardId, columnId }) => {
     columnId: PropTypes.string.isRequired,
   };
 
+  const handleDescriptionPress = () => {
+    setDescriptionModalVisible(true);
+  };
 
-  return (
-    <View style={styles.taskContainer}>
+  const handleDescriptionEdit = async () => {
+    try {
+        if (!boardId || !columnId || !task.id) {
+            console.error('Invalid references: ', { boardId, columnId, taskId: task.id });
+            alert('Cannot edit task due to invalid references.');
+            return;
+        }
+
+        await handleEdit('boards/' + boardId + '/columns/' + columnId + '/tasks/' + task.id, {description: newDescription});
+        console.log('Description updated!');
+    } catch (error) {
+        console.error('Error editing description:', error);
+        alert('Error editing description. Please try again.');
+    }
+};
+
+const handleMovePress = () => {
+  console.log("Move button pressed");
+  setDescriptionModalVisible(false);
+  setMoveModalVisible(true);
+};
+
+const handleMoveTask = async () => {
+  try {
+    if (!boardId || !columnId || !selectedColumnId || !task.id) {
+      console.error('Invalid references: ', { boardId, columnId, selectedColumnId, taskId: task.id });
+      alert('Cannot move task due to invalid references.');
+      return;
+    }
+    
+    // Vous devrez implémenter `handleMove` pour ajuster la base de données en conséquence.
+    await handleMove(boardId, columnId, selectedColumnId, task.id, task);
+    
+    console.log('Task moved!');
+    setMoveModalVisible(false);
+  } catch (error) {
+    console.error('Error moving task:', error);
+    alert('Error moving task. Please try again.');
+  }
+};
+
+
+return (
+  <View style={styles.taskContainer}>
+    <TouchableOpacity onPress={handleDescriptionPress}>
       <Text style={styles.taskText}>{newTaskName}</Text>
-      <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.menuButton}>
-        <Text style={styles.menuButtonText}>...</Text>
-      </TouchableOpacity>
+    </TouchableOpacity>
+    <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.menuButton}>
+      <Text style={styles.menuButtonText}>...</Text>
+    </TouchableOpacity>
 
-      {/* Task Options Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}
-      >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Button title="Edit" onPress={handleEditPress} />
-            <Button title="Delete" onPress={handleTaskDelete} />
-            <Button title="Cancel" onPress={() => setModalVisible(false)} />
-          </View>
+    {/* Task Options Modal */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={modalVisible}
+      onRequestClose={() => {
+        setModalVisible(!modalVisible);
+      }}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Button title="Edit Name" onPress={handleEditPress} />
+          <Button title="Edit Description" onPress={() => {
+            setDescriptionEditModalVisible(true);
+            setModalVisible(false);
+          }} />
+          <Button title="Delete" onPress={handleTaskDelete} />
+          <Button title="Cancel" onPress={() => setModalVisible(false)} />
         </View>
-      </Modal>
+      </View>
+    </Modal>
 
-      {/* Edit Task Modal */}
-      <Modal
+    {/* Edit Task Name Modal */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={editModalVisible}
+      onRequestClose={() => {
+        setEditModalVisible(!editModalVisible);
+      }}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <TextInput
+            style={styles.input}
+            placeholder="New Task Name"
+            value={newTaskName}
+            onChangeText={setNewTaskName}
+          />
+          <Button title="Confirm" onPress={handleEditConfirm} />
+          <Button title="Cancel" onPress={() => setEditModalVisible(false)} />
+        </View>
+      </View>
+    </Modal>
+
+    {/* View Description Modal */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={descriptionModalVisible}
+      onRequestClose={() => {
+        setDescriptionModalVisible(!descriptionModalVisible);
+      }}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <Text>{task.description || "No description available."}</Text>
+          <Button title="Close" onPress={() => setDescriptionModalVisible(false)} />
+          <Button title="Move" onPress={handleMovePress} />
+        </View>
+      </View>
+    </Modal>
+
+    {/* Edit Description Modal */}
+    <Modal
+      animationType="slide"
+      transparent={true}
+      visible={descriptionEditModalVisible}
+      onRequestClose={() => {
+        setDescriptionEditModalVisible(!descriptionEditModalVisible);
+      }}
+    >
+      <View style={styles.centeredView}>
+        <View style={styles.modalView}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter description"
+            value={newDescription}
+            onChangeText={setNewDescription}
+          />
+          <Button title="Confirm" onPress={() => {
+            handleDescriptionEdit();
+            setDescriptionEditModalVisible(false);
+          }} />
+          <Button title="Cancel" onPress={() => setDescriptionEditModalVisible(false)} />
+        </View>
+      </View>
+    </Modal>
+    {/* Move Task Modal */}
+    <Modal
         animationType="slide"
         transparent={true}
-        visible={editModalVisible}
+        visible={moveModalVisible}
         onRequestClose={() => {
-          setEditModalVisible(!editModalVisible);
+          setMoveModalVisible(!moveModalVisible);
         }}
       >
         <View style={styles.centeredView}>
           <View style={styles.modalView}>
-            <TextInput
-              style={styles.input}
-              placeholder="New Task Name"
-              value={newTaskName}
-              onChangeText={setNewTaskName}
-            />
-            <Button title="Confirm" onPress={handleEditConfirm} />
-            <Button title="Cancel" onPress={() => setEditModalVisible(false)} />
+            <Text>Select a column to move the task to:</Text>
+            <Picker
+              selectedValue={selectedColumnId}
+              onValueChange={(itemValue, itemIndex) => setSelectedColumnId(itemValue)}
+            >
+              {columns.map((column) => (
+                <Picker.Item label={column.name} value={column.id} key={column.id} />
+              ))}
+            </Picker>
+            <Button title="Confirm" onPress={handleMoveTask} />
+            <Button title="Cancel" onPress={() => setMoveModalVisible(false)} />
           </View>
         </View>
       </Modal>
