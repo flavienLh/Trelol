@@ -169,10 +169,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#F5F5F5', // Updated background color
+    backgroundColor: '#F5F5F5', 
   },
   title: {
-    fontSize: 28,  // Increased font size
+    fontSize: 28,  
     fontWeight: 'bold',
     marginBottom: 10,
     color: '#3F3F3F', 
@@ -183,24 +183,24 @@ const styles = StyleSheet.create({
   },
   column: {
     width: 150,
-    padding: 15,  // Increased padding
+    padding: 15,  
     borderWidth: 1,
     borderColor: '#ddd',
     marginRight: 10,
-    borderRadius: 12,  // Slightly more rounded corners
+    borderRadius: 12,  
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,  // Slightly more pronounced shadow
+    shadowOpacity: 0.25,  
     shadowRadius: 4,
     elevation: 5,
     flex: 1,
   },
   columnTitle: {
-    fontSize: 22,  // Increased font size
+    fontSize: 22,  
     fontWeight: 'bold',
     marginBottom: 10,
-    color: '#3F3F3F',  // Updated text color
+    color: '#3F3F3F',  
   },
   tasksContainer: {
     maxHeight: 200,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   modalView: {
-    width: '80%', // Utilisez un pourcentage de la largeur de l'écran
+    width: '80%', 
     backgroundColor: "white",
     padding: 35,
     alignItems: "center",

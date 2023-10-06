@@ -81,7 +81,7 @@ const HomeScreen = () => {
       />
       <TouchableOpacity
         style={styles.createBoardButton}
-        onPress={() => navigation.navigate('NewProject')}  // Adjust as per your navigator
+        onPress={() => navigation.navigate('NewProject')}  
       >
         <Text style={styles.createBoardButtonText}>Create New Board</Text>
       </TouchableOpacity>

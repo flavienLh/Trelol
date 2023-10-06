@@ -5,7 +5,6 @@ import { db } from '../firebase/Config';
 import { ref, onValue, push, set, createRef } from 'firebase/database';
 import Task from '../components/Task';
 
-const screenWidth = Dimensions.get('window').width;
 
 const ColumnScreen = () => {
   const [tasks, setTasks] = useState({});
@@ -25,7 +24,6 @@ const ColumnScreen = () => {
           const tasksData = [];
           Object.keys(columnData.tasks).forEach((taskId) => {
             const taskData = columnData.tasks[taskId];
-            // Vérifiez si la tâche appartient à la colonne actuelle
             if (taskData.columnId === currentColumnId) {
               tasksData.push({
                 id: taskId,
