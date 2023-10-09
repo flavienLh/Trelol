@@ -95,7 +95,6 @@ const Task = ({ task, boardId, columnId }) => {
     task: PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
-      // Add other task fields as necessary
     }).isRequired,
     boardId: PropTypes.string.isRequired,
     columnId: PropTypes.string.isRequired,
@@ -128,14 +127,12 @@ const handleMovePress = () => {
 
 const handleMove = async (boardId, fromColumnId, toColumnId, taskId, task) => {
   try {
-    // Vérifiez si les ID sont valides
     if (!boardId || !fromColumnId || !toColumnId || !taskId || !task) {
       console.error('Invalid IDs:', { boardId, fromColumnId, toColumnId, taskId });
       alert('Cannot move task due to invalid IDs.');
       return;
     }
 
-    // Construisez les chemins de référence pour la tâche dans les colonnes source et de destination
     const fromPath = `boards/${boardId}/columns/${fromColumnId}/tasks/${taskId}`;
     const toPath = `boards/${boardId}/columns/${toColumnId}/tasks/${taskId}`;
 
@@ -144,7 +141,6 @@ const handleMove = async (boardId, fromColumnId, toColumnId, taskId, task) => {
     updates[fromPath] = null; 
     updates[toPath] = task;  
 
-    // Mettez à jour la base de données
     await update(ref(db), updates);
     console.log('Task moved successfully!');
   } catch (error) {
@@ -161,7 +157,6 @@ const handleMoveTask = async () => {
       return;
     }
     
-    // Vous devrez implémenter `handleMove` pour ajuster la base de données en conséquence.
     await handleMove(boardId, columnId, selectedColumnId, task.id, task);
     
     console.log('Task moved!');
@@ -285,16 +280,16 @@ return (
             {columns.length > 0 ? (
               columns.map((column, key) => (
                 <TouchableOpacity
-                  key={column.id} // Add a unique key for each item
+                  key={column.id} 
                   onPress={() => setSelectedColumnId(column.id)}>
                   <Text
                   style={{
-                      backgroundColor: '#007bff', // Background color for the "button"
-                      color: 'white', // Text color for the "button"
-                      padding: 10, // Padding around the text
-                      marginVertical: 5, // Vertical margin between columns
-                      borderRadius: 5, // Border radius to round the corners
-                      textAlign: 'center', // Center-align the text horizontally
+                      backgroundColor: '#007bff', 
+                      color: 'white', 
+                      padding: 10, 
+                      marginVertical: 5, 
+                      borderRadius: 5, 
+                      textAlign: 'center', 
                     }}>{column.name}</Text>
                 </TouchableOpacity>
               ))
@@ -357,7 +352,7 @@ const styles = StyleSheet.create({
     borderColor: 'gray',
     borderWidth: 1,
     marginBottom: 20,
-    width: 200, // or adjust according to your needs
+    width: 200, 
     textAlign: 'center',
   },
   enteredView: {
